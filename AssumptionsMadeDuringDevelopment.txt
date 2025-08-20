@@ -1,0 +1,41 @@
+Assumptions Made During Development
+
+Single Currency Support:
+
+The system assumes all transactions are in INR (Indian Rupee). Multi-currency support is not implemented.
+
+Unique User Accounts:
+
+Each user has one wallet account linked to their profile. Multiple wallets per user are not supported.
+
+Sufficient Wallet Balance:
+
+Users must maintain sufficient balance before making payments. No overdraft/credit feature is provided.
+
+Transaction Atomicity:
+
+All wallet updates (debit/credit) and ledger entries are treated as atomic operations. If one fails, the entire transaction is rolled back.
+
+Txn_ID Uniqueness:
+
+Every transaction (txn_id) is assumed to be unique across the system. Client or server will reject duplicates.
+
+PIN/Password Authentication:
+
+Users are assumed to remember their login PIN and not share it with others. Biometric or 2FA support is not included at this stage.
+
+No Third-Party Integrations:
+
+Mobile recharges, bill payments, and UPI transfers are mocked/simulated. No actual telecom, biller, or UPI gateway integration is implemented.
+
+Limited Scalability (for now):
+
+The system is designed for demo & testing with SQLite. For production, it is assumed the system will be migrated to PostgreSQL/MySQL with connection pooling.
+
+Timezone Handling:
+
+All timestamps are stored in UTC (via datetime("now") in SQLite). Conversion to user’s local time is assumed to be handled at the frontend.
+
+Seed Data for Testing:
+
+Preloaded users, wallets, and sample transactions are assumed sufficient for testing API flows without requiring real-world data.
