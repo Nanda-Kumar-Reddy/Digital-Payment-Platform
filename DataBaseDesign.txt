@@ -1,0 +1,100 @@
+Database Design Decisions:
+
+1. Choice of Database
+
+SQLite was chosen for development because:
+
+Lightweight and file-based (easy to set up for local dev).
+Doesn’t require additional server installation.
+Compatible with better-sqlite3 for fast in-process queries.
+
+In production, this schema can be migrated to PostgreSQL or MySQL without major changes.
+
+2. Tables and Rationale
+
+users:
+Stores user profile and authentication details.
+Includes unique phone_number and hashed pin for secure login.
+Design choice: Minimal PII, relying primarily on phone-based identity.
+
+users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT,
+  phone_number TEXT UNIQUE,
+  pin_hash TEXT,
+  created_at DATETIME,
+  updated_at DATETIME
+)
+
+
+wallet_accounts:
+Each user has one wallet account.
+Tracks current balance and last updated timestamp.
+Design choice: Separate table from users to allow future expansion (e.g., multiple accounts per user, linking bank accounts).
+wallet_accounts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id),
+  balance REAL DEFAULT 0,
+  updated_at DATETIME
+)
+
+
+wallet_ledger:
+Records all credit/debit transactions.
+Provides auditability and prevents disputes.
+
+Stores balance_after to quickly reconstruct account history.
+
+wallet_ledger (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id),
+  txn_id TEXT UNIQUE,
+  entry_type TEXT CHECK(entry_type IN ('credit', 'debit')),
+  amount REAL,
+  balance_after REAL,
+  created_at DATETIME
+)
+
+
+transactions:
+
+Tracks money flow between users (e.g., UPI payments, transfers).
+Separates logical transactions from ledger entries, making reconciliation easier.
+
+transactions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  sender_id INTEGER REFERENCES users(id),
+  receiver_id INTEGER REFERENCES users(id),
+  amount REAL,
+  txn_type TEXT CHECK(txn_type IN ('upi', 'transfer', 'recharge', 'bill')),
+  status TEXT CHECK(status IN ('pending', 'success', 'failed')),
+  created_at DATETIME
+)
+
+
+bills (optional extension):
+
+Stores utility bill details for bill payment services.
+Helps simulate a real-world use case like PhonePe/Paytm.
+
+bills (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER REFERENCES users(id),
+  biller_name TEXT,
+  amount REAL,
+  status TEXT CHECK(status IN ('unpaid', 'paid')),
+  due_date DATETIME,
+  paid_at DATETIME
+)
+
+3. Design Considerations
+
+Normalization: Tables are normalized (3NF) to reduce redundancy.
+Auditability: Ledger ensures no balance manipulation goes untracked.
+
+Data Integrity:
+
+Foreign key constraints between users and their wallets/transactions.
+CHECK constraints for enum-like fields (entry_type, txn_type, status).
+
+Scalability: Although SQLite is used for development, schema is designed to easily migrate to PostgreSQL or MySQL.
