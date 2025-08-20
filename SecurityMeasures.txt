@@ -1,0 +1,44 @@
+Security Measures Implemented
+
+Security is critical in a digital payment system. The following measures were implemented to ensure data integrity, confidentiality, and protection against misuse:
+
+Authentication & Authorization:
+
+Implemented JWT-based authentication to ensure only valid users can access protected APIs.
+Tokens are short-lived and refreshed securely to reduce the risk of misuse.
+Role-based access controls for admin and users (future extension).
+
+Password & PIN Protection:
+
+User login PINs and passwords are hashed using bcrypt before storing in the database.
+No sensitive credential is stored in plain text.
+
+Input Validation & Sanitization:
+All incoming API inputs are validated (e.g., amount > 0, valid UPI IDs, valid operators for recharge).
+SQL queries use parameterized statements (SQLite prepare().run() / .get()), preventing SQL injection.
+
+Transaction Integrity:
+
+Transactions are recorded in a ledger table to maintain audit trails.
+Double-entry system: balance updates are always logged in wallet_ledger with debit/credit entries.
+Ensures reconciliation in case of disputes.
+
+Secure Error Handling:
+
+Sensitive information (like SQL errors or stack traces) is not exposed to clients.
+Generic error messages are returned, while detailed logs are stored internally.
+
+Rate Limiting & Replay Protection:
+
+APIs such as money transfer and recharge requests can be rate-limited to prevent abuse.
+Unique txn_id is required for each transaction to prevent duplicate/replay attacks.
+
+Transport Layer Security (TLS):
+
+Though not part of the local SQLite setup, in production deployment all APIs should be served only over HTTPS to prevent eavesdropping or man-in-the-middle attacks.
+
+Data Privacy:
+
+User-sensitive fields like UPI IDs and references are stored in the DB with minimal exposure in API responses.
+
+Logs and reports exclude confidential details unless strictly required.
